@@ -3,7 +3,6 @@ import { issuer } from '@openauthjs/openauth';
 import { object, string } from 'valibot';
 import { GoogleProvider } from '@openauthjs/openauth/provider/google';
 import { CloudflareStorage } from '@openauthjs/openauth/storage/cloudflare';
-
 import { createClient } from '@openauthjs/openauth/client';
 
 const client = createClient({
@@ -14,19 +13,6 @@ const client = createClient({
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		const url = new URL(request.url);
-		if (url.pathname === '/callback') {
-			const url = new URL(request.url);
-			const code = url.searchParams.get('code');
-
-			//TODO: remove hardcoded urls
-			const exchanged = await client.exchange(code!, `http://localhost:3000/callback`);
-
-			console.log(exchanged);
-
-			return new Response('HI');
-		}
-
 		const app = issuer({
 			providers: {
 				google: GoogleProvider({
@@ -42,8 +28,8 @@ export default {
 				user: object({
 					email: string(),
 					// TODO: add more info here
-					// picture: string(),
-					// name: string(),
+					picture: string(),
+					name: string(),
 				}),
 			},
 			success: async (ctx, value) => {
@@ -54,10 +40,10 @@ export default {
 						},
 					});
 					const data: any = await response.json();
-					// TODO: create the user here
-
 					return ctx.subject('user', {
 						email: data.email,
+						picture: data.picture,
+						name: data.given_name,
 					});
 				}
 				return new Response('success');
