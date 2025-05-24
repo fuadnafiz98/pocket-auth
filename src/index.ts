@@ -1,18 +1,32 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+import { issuer } from '@openauthjs/openauth';
+
+import { object, string } from 'valibot';
+import { GoogleProvider } from '@openauthjs/openauth/provider/google';
+import { CloudflareStorage } from '@openauthjs/openauth/storage/cloudflare';
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
+	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+		const app = issuer({
+			providers: {
+				google: GoogleProvider({
+					clientID: env.GOOGLE_CLIENTID,
+					clientSecret: env.GOOGLE_CLIENT_SECRET,
+					scopes: ['email', 'profile'],
+				}),
+			},
+			storage: CloudflareStorage({
+				namespace: env.POCKET_AUTH_KV,
+			}),
+			subjects: {
+				user: object({
+					email: string(),
+				}),
+			},
+			success: async (response, input, req) => {
+				console.log(response, input, req);
+				return new Response('success');
+			},
+		});
+		return app.fetch(request, env, ctx);
 	},
 } satisfies ExportedHandler<Env>;
