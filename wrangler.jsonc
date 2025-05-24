@@ -18,7 +18,7 @@
       "binding": "POCKET_AUTH_KV",
       "id": "1a973b6c5dc547ad985bd77a0708870e"
     }
-  ]
+  ],
   /**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
